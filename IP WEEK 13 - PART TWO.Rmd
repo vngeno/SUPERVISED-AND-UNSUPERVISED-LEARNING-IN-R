@@ -1,0 +1,207 @@
+---
+title: "IP WEEK 13 - PART 2"
+output: html_document
+---
+# Defining the Question
+We will work as data scientists for a Kira PLastinina, a Russian Clothing brand to help a the brand sales and marketing team understand their customer behaviour and earn the characteristics of customer groups.
+
+# Metric for Success
+
+We will perform bivariate and univariate analysis clustering to successfully identify customer behaviour and earn the characteristics of customer groups.
+
+# Experimental Design
+1.Defining the Question
+2.Data Cleaning
+3.Exploratory Data Analysis
+4.Implementing the plan
+4.Conlusion and Recommendation
+
+# Data Preparation
+Reading the Data
+```{r}
+#Setting up the environment
+getwd()
+#locating the dataset
+setwd("C:/Users/user/Documents/Shopping")
+#Checking for the particular file
+list.files()
+#loading the dataset
+df <- read.table("online_shoppers_intentions.csv", sep = ",", header = TRUE)
+```
+```{r}
+#Checking the size of the dataset
+file.info("C:/Users/user/Documents/Shopping/online_shoppers_intentions.csv")$size
+str(df, 5)
+#There are 12330 rows and 18 columns
+```
+```{r}
+unique(df)
+```
+```{r}
+summary(df)
+```
+
+```{r}
+#To use the describe function so as to get summary statistics we will install psych package first 
+install.packages("psych")
+library(psych)
+```
+```{r}
+describe(df)
+```
+```{r}
+for (i in 1:10) {
+boxplot(df[,i], main=names(df)[i], horizontal = TRUE)}
+```
+
+```{r}
+#Checking for missing values
+sum(is.na(df))
+#There are 112 missing values, we'll drop them
+```
+
+```{r}
+df2 <- na.omit(df)
+df2
+```
+
+```{r}
+sum(is.na(df2))
+```
+
+```{r}
+install.packages("magrittr")
+install.packages("dplyr")
+install.packages("DataExplorer")
+install.packages("ggplot2")
+library(magrittr)
+library(dplyr)
+library(DataExplorer)
+library(ggplot2)
+```
+
+```{r}
+plot_intro(df2)
+#This further establishes that there are no missing values
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Administrative))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Weekend))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Revenue))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = VisitorType))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Region))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Month))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = SpecialDay))
+```
+
+```{r}
+ggplot(data = df2) +
+geom_bar(mapping = aes(x = Informational))
+```
+
+```{r}
+ggplot(df,
+aes(x = VisitorType,
+y = Informational)) +
+geom_bar(stat = "identity", fill = "cornflowerblue")
+```
+
+```{r}
+ggplot(df,
+aes(x = VisitorType,
+y = Informational)) +
+geom_bar(stat = "identity", fill = "pink")
+```
+
+```{r}
+ggplot(df,
+aes(x = Administrative,
+y = Region)) +
+geom_bar(stat = "identity", fill = "pink")
+```
+#IMPLEMENTING THE SOLUTION
+CLUSTERING
+KMEANS
+```{r}
+#We'll load the head of the dataset
+head(df2)
+
+```
+
+```{r}
+x=df2[,c(7,8)]#Using only the BounceRates and ExitRates columns
+head(x)
+```
+
+```{r}
+model=kmeans(x,2)
+ library(cluster)
+clusplot(x,model$cluster)
+```
+
+```{r}
+clusplot(x,model$cluster,color=T,shade=T)
+#assign different colors to the clusters and shading them
+```
+HIERACHICAL CLUSTERING
+```{r}
+# Create hierarchical clustering model: hclust.out
+hclust.out <- hclust(dist(x))
+hclust.out
+```
+
+```{r}
+# Inspect the result
+summary(hclust.out)
+plot(hclust.out)
+abline(h = 7, col = "red")
+```
+
+```{r}
+# Cluster using complete linkage: hclust.complete
+hclust.complete <- hclust(dist(x), method = "complete")
+# Cluster using average linkage: hclust.average
+hclust.average <- hclust(dist(x), method = "average")
+# Cluster using single linkage: hclust.single
+hclust.single <- hclust(dist(x), method = "single")
+# Plot dendrogram of hclust.complete
+plot(hclust.complete, main = "Complete")
+```
+
+```{r}
+# Plot dendrogram of hclust.single
+plot(hclust.single, main = "Single")
+```
+#MODEL INTERPRETATION
+Both models worked well, especially hierachical clustering as the dataset is not large. In K means clustering we had to define the number of clusters to be created beforehand, Which is sometimes difficult to say. Whereas in Hierarchical clustering data is automatically formed into a tree shape form (dandogram) and we can chose which trees are significant.
+
+#Conclusion and recommendation
+We observed that there were more returning visitors than new ones hence the marketing team is urged to re-strategize on marketing techniques to attract new customers.
+There was also more activity during the weekdays compared to weekends. 
+There were more purchases from mid year to end year and this is true as most people get mid-year bonuses and hence make more purchases during that time.However the company is urged to come up with offers during the times of the year where there are few sales in order to create balance and ensure the products are moving hence make more sales and profit.
