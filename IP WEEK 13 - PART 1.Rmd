@@ -1,0 +1,260 @@
+
+---
+title: "R FUNDAMENTALS - IP WEEK 12"
+output: html_document
+---
+# Defining the Question
+We will work as data scientists for a Kenyan entrepreneur who runs an online cytography course and would like for us to help her identify which individuals are most likely to click on her ads.
+
+# Metric for Success
+
+We will perform bivariate and univariate analysis and successfully identify the individuals that are most likely to click on the ads
+
+# Experimental Design
+1.Defining the Question
+2.Data Cleaning
+3.Exploratory Data Analysis
+4.Implementing the plan
+4.Conlusion and Recommendation
+
+
+# Data Preparation
+Reading the Data
+
+```{r}
+#Setting up the environment
+getwd()
+#locating the dataset
+setwd("C:/Users/user/Documents/advertising")
+#Checking for the particular file
+list.files()
+#loading the dataset
+df <- read.table("advertising.csv", sep = ",", header = TRUE)
+```
+
+```{r}
+#Checking the size of the dataset
+file.info("C:/Users/user/Documents/advertising/advertising.csv")$size
+#taking a look at the dataset, there are 339 rows and 10 columns
+str(df, 5)
+#Checking for structural errors
+#Seemingly there are no mislabeled columns
+```
+
+```{r}
+unique(df)
+```
+
+```{r}
+summary(df)
+```
+
+```{r}
+#To use the describe function so as to get summary statistics we will install psych package first 
+install.packages("psych")
+```
+
+```{r}
+library(psych)
+```
+
+```{r}
+describe(df)
+```
+
+```{r}
+#Checking for outliers. This shows no outliers in the aga and Day time spent online
+for (i in 1:2) {
+  boxplot(df[,i], main=names(df)[i], horizontal = TRUE)}
+```
+
+```{r}
+#There just one outlier in the Area Income column and we'll keep it. 
+outlier_values <- boxplot.stats(df$Area.Income)$out  # outlier values.
+boxplot(df$Area.Income, main="Area Income Outliers", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+# Exploratory Data Analysis
+Univariate Analysis
+```{r}
+install.packages("magrittr")
+```
+
+```{r}
+install.packages("dplyr")
+```
+
+```{r}
+library(magrittr)
+library(dplyr)
+```
+
+```{r}
+install.packages("DataExplorer")
+```
+
+```{r}
+library(DataExplorer)
+```
+
+```{r}
+plot_intro(df)
+```
+
+```{r}
+install.packages("ggplot2")
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(data = df) +
+  geom_bar(mapping = aes(x = Age))
+```
+
+
+```{r}
+DataExplorer::plot_histogram(df$Daily.Internet.Usage)
+```
+
+Bivariate Analysis
+```{r}
+cor(df$Age,df$Clicked.on.Ad, method = c("pearson", "kendall", "spearman"))
+```
+Moderate positive relationship: Some points are close to the line but other points are far from it, which indicates only a moderate linear relationship between the variables.
+
+```{r}
+cor(df$Daily.Internet.Usage,df$Clicked.on.Ad, method = c("pearson", "kendall", "spearman"))
+```
+Large negative relationship: The points fall close to the line, which indicates that there is a strong negative relationship between the variables. The relationship is negative because, as one variable increases, the other variable decreases.
+
+```{r}
+cor(df$Clicked.on.Ad,df$Daily.Internet.Usage, method = c("pearson", "kendall", "spearman"))
+```
+
+
+Large negative relationship: The points fall close to the line, which indicates that there is a strong negative relationship between the variables. The relationship is negative because, as one variable increases, the other variable decreases.
+
+```{r}
+cor(df$Clicked.on.Ad,df$Male, method = c("pearson", "kendall", "spearman"))
+```
+
+No relationship:The points fall randomly on the plot, which indicates that there is no linear relationship between the variables.
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+ggplot(df, aes(x = Age, y = Area.Income)) + geom_point()
+```
+
+```{r}
+ggplot(df, 
+       aes(x = Male, 
+           y = Clicked.on.Ad)) +
+  geom_bar(stat = "identity")
+```
+```{r}
+ggplot(df, 
+       aes(x = Age, 
+           y = Clicked.on.Ad)) +
+  geom_bar(stat = "identity", fill = "cornflowerblue")
+```
+
+
+```{r}
+install.packages("klaR")
+```
+
+```{r}
+install.packages("tidyverse")
+install.packages("devtools")
+library(tidyverse)
+```
+
+#Implementing the plan
+LINEAR REGRESSION
+
+```{r}
+head(df)
+```
+```{r}
+set.seed(123)
+sample <- sample(c(TRUE, FALSE), nrow(df), replace = T, prob = c(0.6,0.4))
+train <- df[sample, ]
+test <- df[!sample, ]
+test
+```
+
+
+```{r}
+model1 <- lm(Clicked.on.Ad ~ Daily.Time.Spent.on.Site, data = train)
+model1
+```
+
+```{r}
+summary(model1)
+```
+```{r}
+ggplot(train, aes(Daily.Time.Spent.on.Site, Clicked.on.Ad)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_smooth(se = FALSE, color = "red")
+```
+```{r}
+X=df[,c(1,2,3,4,7,10)]#Using only numerical columns
+X
+```
+```{r}
+library(knitr)
+library(class)
+```
+
+```{r}
+
+set.seed(1234)
+ind <- sample(2, nrow(X), replace=TRUE, prob=c(0.7, 0.3))
+trainData <- X[ind==1,]
+testData <- X[ind==2,]
+```
+
+```{r}
+# Execution of k-NN with k=1
+KnnTestPrediction_k1 <- knn(trainData[,-6], testData[,-6],
+                            trainData$Clicked.on.Ad, k=1, prob=TRUE)
+```
+
+```{r}
+# Confusion matrix of KnnTestPrediction_k1
+table(testData$Clicked.on.Ad, KnnTestPrediction_k1)
+```
+```{r}
+ #Classification accuracy of KnnTestPrediction_k1
+sum(KnnTestPrediction_k1==testData$Clicked.on.Ad)/length(testData$Clicked.on.Ad)*100
+```
+```{r}
+# Execution of k-NN with k=3
+KnnTestPrediction_k3 <- knn(trainData[,-6], testData[,-6],
+                            trainData$Clicked.on.Ad, k=3, prob=TRUE)
+```
+```{r}
+# Confusion matrix of KnnTestPrediction_k1
+table(testData$Clicked.on.Ad, KnnTestPrediction_k3)
+```
+```{r}
+ #Classification accuracy of KnnTestPrediction_k3
+sum(KnnTestPrediction_k3==testData$Clicked.on.Ad)/length(testData$Clicked.on.Ad)*100
+```
+#Interpretation of the KNN MODEL
+MODEL K=1 which is a better model compared to k=3,from the confusion matrix calculation, we found out that: 
+27 out of 40 observations in the test data corresponding to did not click on ad are correctly predicted as did not click click on ad
+39 out of 55 observations in the test data corresponding to did click on ad are correctly predicted as did click on ad.
+#Interpretation of the Logistic model
+The p-value: < 2.2e-1 is generally small hence the model is fits fairly well.
+# Conclusion and Recommendation
+The age of an individual was the top feature in determining clicking on an advert followed by Daily Internet Usage of which the maximum time spent online was 267minutes. 45years is the age that Clicked on the adverts the most, followed by 31 year individuals. Female individuals clicked on ads more than men. 
+. 
